@@ -1,355 +1,390 @@
-import { useState } from "react";
-
-const NOTICIAS = [
-  {
-    id: 1,
-    categoria: "ANIME",
-    titulo: "Dragon Ball DAIMA supera los 10 millones de espectadores en su estreno",
-    resumen: "La nueva serie de Akira Toriyama rompe récords en streaming y se convierte en el anime más visto del año en Latinoamérica.",
-    imagen: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&q=80",
-    autor: "Redacción Otaku",
-    fecha: "3 Mar 2026",
-    destacado: true,
-  },
-  {
-    id: 2,
-    categoria: "CINE",
-    titulo: "Avengers: Doomsday ya tiene tráiler oficial y el mundo explota en redes",
-    resumen: "Marvel Studios sorprendió a todos con un tráiler cargado de referencias y el regreso de personajes icónicos del MCU.",
-    imagen: "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=600&q=80",
-    autor: "CineFreak",
-    fecha: "2 Mar 2026",
-    destacado: true,
-  },
-  {
-    id: 3,
-    categoria: "ANIME",
-    titulo: "Demon Slayer anuncia su arco final: fecha de estreno confirmada",
-    resumen: "Ufotable revela que la adaptación del arco final llegará en verano 2026 con una calidad visual sin precedentes.",
-    imagen: "https://images.unsplash.com/photo-1541562232579-512a21360020?w=600&q=80",
-    autor: "AnimeWorld",
-    fecha: "1 Mar 2026",
-    destacado: false,
-  },
-  {
-    id: 4,
-    categoria: "ESPECTÁCULO",
-    titulo: "Taylor Swift anuncia gira latinoamericana para finales de 2026",
-    resumen: "La superestrella del pop confirma 12 fechas en América Latina, incluyendo Argentina, México, Brasil y Colombia.",
-    imagen: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80",
-    autor: "ShowBiz",
-    fecha: "28 Feb 2026",
-    destacado: false,
-  },
-  {
-    id: 5,
-    categoria: "GAMING",
-    titulo: "GTA VI podría llegar antes de lo esperado según filtraciones internas",
-    resumen: "Fuentes cercanas a Rockstar Games sugieren que el lanzamiento podría adelantarse al tercer trimestre de 2026.",
-    imagen: "https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=600&q=80",
-    autor: "GameZone",
-    fecha: "27 Feb 2026",
-    destacado: false,
-  },
-  {
-    id: 6,
-    categoria: "SERIES",
-    titulo: "The Last of Us Temporada 3: HBO confirma producción y regreso del elenco",
-    resumen: "Pedro Pascal y Bella Ramsey vuelven para continuar la historia post-apocalíptica más aclamada de la televisión.",
-    imagen: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=600&q=80",
-    autor: "SeriesMania",
-    fecha: "26 Feb 2026",
-    destacado: false,
-  },
-];
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "./lib/supabase";
 
 const CATEGORIAS = ["TODAS", "ANIME", "CINE", "ESPECTÁCULO", "GAMING", "SERIES"];
 
-const CATEGORIA_COLORS = {
+const CAT_COLORS = {
   ANIME: "#ff6b35",
   CINE: "#4ecdc4",
-  ESPECTÁCULO: "#ffe66d",
-  GAMING: "#a8ff78",
+  "ESPECTÁCULO": "#f7c948",
+  GAMING: "#7bed9f",
   SERIES: "#ff6b9d",
 };
 
-export default function BlogNoticias() {
-  const [categoriaActiva, setCategoriaActiva] = useState("TODAS");
+export default function App() {
+  const [noticias, setNoticias] = useState([]);
+  const [categoria, setCategoria] = useState("TODAS");
+  const [busqueda, setBusqueda] = useState("");
+  const [cargando, setCargando] = useState(true);
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const navigate = useNavigate();
 
-  const noticiasFiltradas =
-    categoriaActiva === "TODAS"
-      ? NOTICIAS
-      : NOTICIAS.filter((n) => n.categoria === categoriaActiva);
+  useEffect(() => {
+    const cargar = async () => {
+      const { data } = await supabase
+        .from("noticias")
+        .select("*")
+        .eq("publicado", true)
+        .order("created_at", { ascending: false });
+      setNoticias(data || []);
+      setCargando(false);
+    };
+    cargar();
+  }, []);
 
-  const destacadas = noticiasFiltradas.filter((n) => n.destacado);
-  const normales = noticiasFiltradas.filter((n) => !n.destacado);
+  const ir = (id) => navigate("/noticia/" + id);
+
+  const filtradas = noticias.filter(n => {
+    const matchCat = categoria === "TODAS" || n.categoria === categoria;
+    const matchBus = n.titulo?.toLowerCase().includes(busqueda.toLowerCase());
+    return matchCat && matchBus;
+  });
+
+  const destacadas = filtradas.filter(n => n.destacado);
+  const normales = filtradas.filter(n => !n.destacado);
+  const hero = destacadas[0] || noticias[0];
 
   return (
-    <div style={{ fontFamily: "'Georgia', 'Times New Roman', serif", background: "#0a0a0f", minHeight: "100vh", color: "#e8e8f0" }}>
-      
-      {/* Estilos globales */}
+    <div style={{ background: "#07070f", minHeight: "100vh", color: "#e8e8f0", fontFamily: "sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@300;400;600&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0a0a0f; }
-        ::-webkit-scrollbar-thumb { background: #ff6b35; border-radius: 3px; }
-        
-        .nav-link { color: #aaa; text-decoration: none; font-size: 13px; letter-spacing: 2px; font-family: 'Source Sans 3', sans-serif; font-weight: 600; transition: color 0.2s; cursor: pointer; }
-        .nav-link:hover { color: #ff6b35; }
-        
-        .cat-btn { background: none; border: 1px solid #333; color: #888; padding: 6px 16px; border-radius: 2px; cursor: pointer; font-size: 11px; letter-spacing: 2px; font-family: 'Source Sans 3', sans-serif; font-weight: 600; transition: all 0.2s; }
-        .cat-btn:hover { border-color: #ff6b35; color: #ff6b35; }
-        .cat-btn.active { background: #ff6b35; border-color: #ff6b35; color: #0a0a0f; }
-        
-        .card-principal { cursor: pointer; position: relative; overflow: hidden; border-radius: 4px; }
-        .card-principal img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; display: block; }
-        .card-principal:hover img { transform: scale(1.04); }
-        
-        .card-small { cursor: pointer; display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid #1a1a2e; transition: all 0.2s; }
-        .card-small:hover { padding-left: 6px; }
-        .card-small:last-child { border-bottom: none; }
-        
-        .noticia-grid { cursor: pointer; overflow: hidden; border-radius: 4px; background: #0f0f1a; transition: transform 0.2s; }
-        .noticia-grid:hover { transform: translateY(-4px); }
-        .noticia-grid img { width: 100%; height: 180px; object-fit: cover; display: block; transition: transform 0.4s; }
-        .noticia-grid:hover img { transform: scale(1.05); }
-        
-        .tag-cat { display: inline-block; padding: 3px 10px; font-size: 10px; letter-spacing: 2px; font-family: 'Source Sans 3', sans-serif; font-weight: 700; border-radius: 2px; }
-        
-        .ad-banner { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px dashed #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #555; font-size: 12px; font-family: 'Source Sans 3', sans-serif; letter-spacing: 1px; }
-        
-        .ticker-item { white-space: nowrap; padding: 0 40px; font-size: 13px; color: #ccc; font-family: 'Source Sans 3', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #ff6b35; border-radius: 5px; }
+
+        /* NAV */
+        .nav-item { color: #aaa; font-size: 13px; letter-spacing: 1.5px; cursor: pointer; font-weight: 500; transition: color 0.2s; text-decoration: none; }
+        .nav-item:hover { color: #fff; }
+
+        /* HERO */
+        .hero-section { position: relative; height: 92vh; min-height: 500px; overflow: hidden; }
+        .hero-img { width: 100%; height: 100%; object-fit: cover; object-position: center; transform: scale(1.04); transition: transform 8s ease; }
+        .hero-img:hover { transform: scale(1); }
+        .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(7,7,15,0.92) 0%, rgba(7,7,15,0.6) 50%, rgba(7,7,15,0.2) 100%); }
+        .hero-overlay2 { position: absolute; inset: 0; background: linear-gradient(to top, rgba(7,7,15,1) 0%, transparent 50%); }
+
+        /* SEARCH BAR */
+        .search-bar { display: flex; gap: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+        .search-input { flex: 1; padding: 14px 20px; background: rgba(255,255,255,0.1); border: none; color: #fff; font-size: 14px; outline: none; backdrop-filter: blur(10px); font-family: 'Inter', sans-serif; }
+        .search-input::placeholder { color: rgba(255,255,255,0.4); }
+        .search-btn { padding: 14px 24px; background: #ff6b35; border: none; color: #fff; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; letter-spacing: 1px; transition: background 0.2s; }
+        .search-btn:hover { background: #ff8555; }
+
+        /* CATEGORY PILLS */
+        .cat-pill { padding: 8px 18px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #aaa; font-size: 12px; font-weight: 600; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; white-space: nowrap; font-family: 'Inter', sans-serif; }
+        .cat-pill:hover { border-color: #ff6b35; color: #ff6b35; }
+        .cat-pill.active { background: #ff6b35; border-color: #ff6b35; color: #fff; }
+
+        /* CARDS */
+        .card { background: #0f0f1c; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.25s, box-shadow 0.25s; border: 1px solid rgba(255,255,255,0.06); }
+        .card:hover { transform: translateY(-6px); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .card img { width: 100%; height: 200px; object-fit: cover; display: block; transition: transform 0.4s; }
+        .card:hover img { transform: scale(1.05); }
+
+        /* CARD GRANDE */
+        .card-lg { background: #0f0f1c; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.25s, box-shadow 0.25s; border: 1px solid rgba(255,255,255,0.06); }
+        .card-lg:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .card-lg img { width: 100%; height: 340px; object-fit: cover; display: block; transition: transform 0.4s; }
+        .card-lg:hover img { transform: scale(1.03); }
+
+        /* TICKER */
         @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-        .ticker-wrap { overflow: hidden; }
-        .ticker-inner { display: flex; animation: ticker 30s linear infinite; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn 0.4s ease forwards; }
+        .ticker-inner { display: flex; animation: ticker 35s linear infinite; white-space: nowrap; }
+        .ticker-inner:hover { animation-play-state: paused; }
+
+        /* TAG */
+        .tag { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; font-family: 'Inter', sans-serif; }
+
+        /* MOBILE MENU */
+        .mobile-menu { position: fixed; inset: 0; background: rgba(7,7,15,0.98); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 32px; }
+
+        /* SHIMMER */
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .shimmer { background: linear-gradient(90deg, #0f0f1c 25%, #1a1a2e 50%, #0f0f1c 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; }
+
+        /* FADE */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp 0.6s ease forwards; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+          .hero-overlay { background: linear-gradient(to top, rgba(7,7,15,1) 0%, rgba(7,7,15,0.7) 50%, rgba(7,7,15,0.3) 100%); }
+          .desktop-nav { display: none !important; }
+          .mobile-btn { display: flex !important; }
+          .grid-3 { grid-template-columns: 1fr !important; }
+          .grid-2 { grid-template-columns: 1fr !important; }
+          .hero-content { bottom: 80px !important; }
+          .hero-title { font-size: 28px !important; }
+        }
+        @media (min-width: 769px) {
+          .mobile-btn { display: none !important; }
+        }
       `}</style>
 
-      {/* Header */}
-      <header style={{ borderBottom: "1px solid #1a1a2e", position: "sticky", top: 0, zIndex: 100, background: "rgba(10,10,15,0.96)", backdropFilter: "blur(10px)" }}>
+      {/* ── NAVBAR ── */}
+      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 150, padding: "0 24px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(7,7,15,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         
-        {/* Top bar */}
-        <div style={{ borderBottom: "1px solid #111", padding: "8px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: "11px", color: "#555", fontFamily: "'Source Sans 3', sans-serif", letterSpacing: "1px" }}>
-            MARTES 3 DE MARZO, 2026
+        {/* Logo */}
+        <div onClick={() => navigate("/")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ width: "34px", height: "34px", background: "linear-gradient(135deg, #ff6b35, #f7c948)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "16px", color: "#07070f" }}>N</div>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "20px", letterSpacing: "-0.5px" }}>
+            NEXUS<span style={{ fontWeight: 300, color: "#666" }}>MEDIA</span>
           </span>
-          <div style={{ display: "flex", gap: "20px" }}>
-            {["INICIO", "CONTACTO", "ADMIN"].map(link => (
-              <span key={link} className="nav-link">{link}</span>
-            ))}
+        </div>
+
+        {/* Nav desktop */}
+        <div className="desktop-nav" style={{ display: "flex", gap: "32px", alignItems: "center" }}>
+          {CATEGORIAS.slice(1).map(cat => (
+            <span key={cat} className="nav-item" onClick={() => { setCategoria(cat); document.getElementById("noticias")?.scrollIntoView({ behavior: "smooth" }); }}>
+              {cat}
+            </span>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <span className="nav-item desktop-nav" onClick={() => navigate("/admin")} style={{ background: "rgba(255,107,53,0.15)", border: "1px solid rgba(255,107,53,0.3)", padding: "8px 16px", borderRadius: "6px", color: "#ff6b35" }}>
+            ADMIN
+          </span>
+          {/* Botón menú móvil */}
+          <button className="mobile-btn" onClick={() => setMenuAbierto(!menuAbierto)} style={{ background: "none", border: "none", cursor: "pointer", color: "#fff", fontSize: "22px", display: "none" }}>
+            {menuAbierto ? "✕" : "☰"}
+          </button>
+        </div>
+      </nav>
+
+      {/* Menú móvil */}
+      {menuAbierto && (
+        <div className="mobile-menu" onClick={() => setMenuAbierto(false)}>
+          {CATEGORIAS.map(cat => (
+            <span key={cat} style={{ color: "#fff", fontSize: "20px", fontWeight: 600, letterSpacing: "2px", cursor: "pointer", fontFamily: "'Inter', sans-serif" }}
+              onClick={() => { setCategoria(cat); setMenuAbierto(false); }}>
+              {cat}
+            </span>
+          ))}
+          <span style={{ color: "#ff6b35", fontSize: "16px", letterSpacing: "2px", cursor: "pointer" }} onClick={() => navigate("/admin")}>ADMIN</span>
+        </div>
+      )}
+
+      {/* ── HERO ── */}
+      <section className="hero-section">
+        <img src="/cya.jpg" alt="Hero" className="hero-img" />
+        <div className="hero-overlay" />
+        <div className="hero-overlay2" />
+
+        {/* Contenido hero */}
+        <div className="hero-content fade-up" style={{ position: "absolute", bottom: "120px", left: 0, right: 0, maxWidth: "680px", padding: "0 32px", margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+            <span style={{ width: "32px", height: "2px", background: "#ff6b35" }} />
+            <span style={{ fontSize: "11px", color: "#ff6b35", letterSpacing: "3px", fontWeight: 600 }}>BIENVENIDO A NEXUSMEDIA</span>
+          </div>
+          <h1 className="hero-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(32px, 5vw, 54px)", fontWeight: 900, lineHeight: 1.15, color: "#fff", textShadow: "0 4px 30px rgba(0,0,0,0.6)", marginBottom: "20px" }}>
+            Tu portal de <span style={{ color: "#ff6b35" }}>Anime</span>, Cine<br />& Entretenimiento
+          </h1>
+          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.7)", lineHeight: 1.7, marginBottom: "32px", fontFamily: "'Inter', sans-serif" }}>
+            Las últimas noticias del mundo del entretenimiento, directas y sin filtros.
+          </p>
+
+          {/* Search bar */}
+          <div className="search-bar" style={{ maxWidth: "520px" }}>
+            <input
+              className="search-input"
+              placeholder="Buscar noticias, anime, películas..."
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && document.getElementById("noticias")?.scrollIntoView({ behavior: "smooth" })}
+            />
+            <button className="search-btn" onClick={() => document.getElementById("noticias")?.scrollIntoView({ behavior: "smooth" })}>
+              BUSCAR
+            </button>
           </div>
         </div>
 
-        {/* Logo */}
-        <div style={{ padding: "16px 24px", textAlign: "center", borderBottom: "1px solid #1a1a2e" }}>
-          <h1 style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: "clamp(28px, 5vw, 52px)",
-            fontWeight: 900,
-            letterSpacing: "-1px",
-            background: "linear-gradient(90deg, #ff6b35, #ffe66d, #4ecdc4)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            lineHeight: 1,
-          }}>
-            NEXUS<span style={{ WebkitTextFillColor: "#e8e8f0", background: "none", fontWeight: 300 }}>MEDIA</span>
-          </h1>
-          <p style={{ fontSize: "11px", color: "#555", letterSpacing: "4px", fontFamily: "'Source Sans 3', sans-serif", marginTop: "4px" }}>
-            ANIME · CINE · ESPECTÁCULO · GAMING · SERIES
-          </p>
+        {/* Flecha scroll */}
+        <div style={{ position: "absolute", bottom: "32px", left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", cursor: "pointer", opacity: 0.6 }}
+          onClick={() => document.getElementById("noticias")?.scrollIntoView({ behavior: "smooth" })}>
+          <span style={{ fontSize: "11px", color: "#fff", letterSpacing: "2px", fontFamily: "'Inter', sans-serif" }}>EXPLORAR</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
         </div>
+      </section>
 
-        {/* Nav categorías */}
-        <div style={{ padding: "12px 24px", display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center" }}>
-          {CATEGORIAS.map(cat => (
-            <button
-              key={cat}
-              className={`cat-btn ${categoriaActiva === cat ? "active" : ""}`}
-              onClick={() => setCategoriaActiva(cat)}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </header>
-
-      {/* Ticker de noticias */}
-      <div style={{ background: "#ff6b35", padding: "8px 0", overflow: "hidden" }}>
-        <div className="ticker-wrap">
+      {/* ── TICKER ── */}
+      {noticias.length > 0 && (
+        <div style={{ background: "linear-gradient(90deg, #ff6b35, #f7c948)", padding: "10px 0", overflow: "hidden" }}>
           <div className="ticker-inner">
-            {[...NOTICIAS, ...NOTICIAS].map((n, i) => (
-              <span key={i} className="ticker-item" style={{ color: "#0a0a0f", fontWeight: 600 }}>
+            {[...noticias, ...noticias].map((n, i) => (
+              <span key={i} onClick={() => ir(n.id)} style={{ padding: "0 40px", fontSize: "13px", fontWeight: 600, color: "#07070f", cursor: "pointer", fontFamily: "'Inter', sans-serif", letterSpacing: "0.5px" }}>
                 ◆ {n.titulo}
               </span>
             ))}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Contenido principal */}
-      <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 24px" }}>
+      {/* ── NOTICIAS ── */}
+      <section id="noticias" style={{ maxWidth: "1280px", margin: "0 auto", padding: "64px 24px" }}>
 
-        {/* Banner publicitario superior */}
-        <div className="ad-banner" style={{ height: "90px", marginBottom: "32px" }}>
-          📢 ESPACIO PUBLICITARIO — Google AdSense 728×90
+        {/* Filtros de categoría */}
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "48px", alignItems: "center" }}>
+          <span style={{ fontSize: "13px", color: "#555", marginRight: "8px", fontWeight: 600, letterSpacing: "1px" }}>FILTRAR:</span>
+          {CATEGORIAS.map(cat => (
+            <button key={cat} className={`cat-pill ${categoria === cat ? "active" : ""}`} onClick={() => setCategoria(cat)}>
+              {cat}
+            </button>
+          ))}
         </div>
 
-        {/* Noticias destacadas */}
-        {destacadas.length > 0 && (
-          <section style={{ marginBottom: "48px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" }}>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "22px", fontWeight: 700, color: "#e8e8f0" }}>
-                Destacadas
-              </h2>
-              <div style={{ flex: 1, height: "1px", background: "linear-gradient(90deg, #ff6b35, transparent)" }} />
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: destacadas.length > 1 ? "2fr 1fr" : "1fr", gap: "4px" }}>
-              
-              {/* Noticia principal grande */}
-              {destacadas[0] && (
-                <div className="card-principal fade-in" style={{ height: "420px" }}>
-                  <img src={destacadas[0].imagen} alt={destacadas[0].titulo} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.3) 60%, transparent 100%)" }} />
-                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "24px" }}>
-                    <span className="tag-cat" style={{ background: CATEGORIA_COLORS[destacadas[0].categoria] || "#ff6b35", color: "#0a0a0f", marginBottom: "10px" }}>
-                      {destacadas[0].categoria}
-                    </span>
-                    <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(18px, 2.5vw, 26px)", fontWeight: 700, lineHeight: 1.2, marginTop: "8px", color: "#fff" }}>
-                      {destacadas[0].titulo}
-                    </h3>
-                    <p style={{ fontSize: "13px", color: "#bbb", marginTop: "8px", fontFamily: "'Source Sans 3', sans-serif", lineHeight: 1.5 }}>
-                      {destacadas[0].resumen}
-                    </p>
-                    <div style={{ display: "flex", gap: "12px", marginTop: "12px", fontSize: "11px", color: "#888", fontFamily: "'Source Sans 3', sans-serif" }}>
-                      <span>✍ {destacadas[0].autor}</span>
-                      <span>📅 {destacadas[0].fecha}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Segunda noticia destacada */}
-              {destacadas[1] && (
-                <div className="card-principal fade-in" style={{ height: "420px" }}>
-                  <img src={destacadas[1].imagen} alt={destacadas[1].titulo} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)" }} />
-                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "20px" }}>
-                    <span className="tag-cat" style={{ background: CATEGORIA_COLORS[destacadas[1].categoria] || "#4ecdc4", color: "#0a0a0f", marginBottom: "8px" }}>
-                      {destacadas[1].categoria}
-                    </span>
-                    <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "18px", fontWeight: 700, lineHeight: 1.3, marginTop: "8px", color: "#fff" }}>
-                      {destacadas[1].titulo}
-                    </h3>
-                    <div style={{ display: "flex", gap: "12px", marginTop: "10px", fontSize: "11px", color: "#888", fontFamily: "'Source Sans 3', sans-serif" }}>
-                      <span>✍ {destacadas[1].autor}</span>
-                      <span>📅 {destacadas[1].fecha}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
+        {/* Loading */}
+        {cargando && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px" }}>
+            {[1,2,3,4,5,6].map(i => <div key={i} className="shimmer" style={{ height: "320px" }} />)}
+          </div>
         )}
 
-        {/* Layout de 3 columnas: noticias + sidebar */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 300px", gap: "32px" }}>
-          
-          {/* Grid de noticias */}
-          <div style={{ gridColumn: "span 2" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" }}>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "22px", fontWeight: 700 }}>
-                Últimas Noticias
-              </h2>
-              <div style={{ flex: 1, height: "1px", background: "linear-gradient(90deg, #333, transparent)" }} />
-            </div>
+        {/* Sin resultados */}
+        {!cargando && filtradas.length === 0 && (
+          <div style={{ textAlign: "center", padding: "80px 24px", color: "#444" }}>
+            <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
+            <p style={{ fontSize: "18px", fontFamily: "'Playfair Display', serif" }}>No se encontraron noticias</p>
+            <p style={{ fontSize: "13px", color: "#333", marginTop: "8px" }}>Intenta con otra categoría o búsqueda</p>
+          </div>
+        )}
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              {normales.map((noticia, i) => (
-                <div key={noticia.id} className="noticia-grid fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
-                  <img src={noticia.imagen} alt={noticia.titulo} />
-                  <div style={{ padding: "16px" }}>
-                    <span className="tag-cat" style={{ background: CATEGORIA_COLORS[noticia.categoria] || "#888", color: "#0a0a0f", fontSize: "9px" }}>
-                      {noticia.categoria}
+        {/* Noticia destacada grande */}
+        {!cargando && destacadas.length > 0 && (
+          <div style={{ marginBottom: "48px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
+              <div style={{ width: "4px", height: "22px", background: "#ff6b35", borderRadius: "2px" }} />
+              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "20px", fontWeight: 700 }}>Destacadas</h2>
+            </div>
+            <div className={`grid-2`} style={{ display: "grid", gridTemplateColumns: destacadas.length >= 2 ? "2fr 1fr" : "1fr", gap: "20px" }}>
+              {/* Card principal */}
+              <div className="card-lg" onClick={() => ir(destacadas[0].id)}>
+                {destacadas[0].imagen_url
+                  ? <img src={destacadas[0].imagen_url} alt={destacadas[0].titulo} />
+                  : <div style={{ height: "340px", background: "linear-gradient(135deg, #1a1a2e, #0f0f1c)" }} />
+                }
+                <div style={{ padding: "24px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                    <span className="tag" style={{ background: CAT_COLORS[destacadas[0].categoria] + "22", color: CAT_COLORS[destacadas[0].categoria], border: `1px solid ${CAT_COLORS[destacadas[0].categoria]}44` }}>
+                      {destacadas[0].categoria}
                     </span>
-                    <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "16px", fontWeight: 700, marginTop: "10px", lineHeight: 1.3, color: "#e8e8f0" }}>
-                      {noticia.titulo}
+                    <span style={{ fontSize: "11px", color: "#555" }}>{destacadas[0].created_at?.slice(0, 10)}</span>
+                  </div>
+                  <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "22px", fontWeight: 700, lineHeight: 1.3, marginBottom: "10px" }}>
+                    {destacadas[0].titulo}
+                  </h3>
+                  <p style={{ fontSize: "14px", color: "#888", lineHeight: 1.6, fontFamily: "'Inter', sans-serif" }}>{destacadas[0].resumen}</p>
+                  <div style={{ marginTop: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "12px", color: "#ff6b35", fontWeight: 600 }}>Leer más →</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Segunda destacada */}
+              {destacadas[1] && (
+                <div className="card-lg" onClick={() => ir(destacadas[1].id)}>
+                  {destacadas[1].imagen_url
+                    ? <img src={destacadas[1].imagen_url} alt={destacadas[1].titulo} style={{ height: "200px" }} />
+                    : <div style={{ height: "200px", background: "linear-gradient(135deg, #1a1a2e, #0f0f1c)" }} />
+                  }
+                  <div style={{ padding: "20px" }}>
+                    <span className="tag" style={{ background: CAT_COLORS[destacadas[1].categoria] + "22", color: CAT_COLORS[destacadas[1].categoria], border: `1px solid ${CAT_COLORS[destacadas[1].categoria]}44`, marginBottom: "10px", display: "inline-block" }}>
+                      {destacadas[1].categoria}
+                    </span>
+                    <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "17px", fontWeight: 700, lineHeight: 1.35, marginTop: "8px" }}>
+                      {destacadas[1].titulo}
                     </h3>
-                    <p style={{ fontSize: "12px", color: "#888", marginTop: "8px", fontFamily: "'Source Sans 3', sans-serif", lineHeight: 1.5 }}>
-                      {noticia.resumen}
+                    <p style={{ fontSize: "13px", color: "#666", marginTop: "8px", fontFamily: "'Inter', sans-serif" }}>{destacadas[1].resumen?.slice(0, 100)}...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Grid de noticias normales */}
+        {!cargando && normales.length > 0 && (
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
+              <div style={{ width: "4px", height: "22px", background: "#4ecdc4", borderRadius: "2px" }} />
+              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "20px", fontWeight: 700 }}>Últimas Noticias</h2>
+            </div>
+            <div className="grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px" }}>
+              {normales.map((n, i) => (
+                <div key={n.id} className="card fade-up" style={{ animationDelay: `${i * 0.08}s` }} onClick={() => ir(n.id)}>
+                  {n.imagen_url
+                    ? <img src={n.imagen_url} alt={n.titulo} />
+                    : <div style={{ height: "200px", background: "linear-gradient(135deg, #1a1a2e, #0f0f1c)" }} />
+                  }
+                  <div style={{ padding: "20px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                      <span className="tag" style={{ background: CAT_COLORS[n.categoria] + "22", color: CAT_COLORS[n.categoria], border: `1px solid ${CAT_COLORS[n.categoria]}44` }}>
+                        {n.categoria}
+                      </span>
+                      <span style={{ fontSize: "11px", color: "#444", fontFamily: "'Inter', sans-serif" }}>{n.created_at?.slice(0, 10)}</span>
+                    </div>
+                    <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "17px", fontWeight: 700, lineHeight: 1.35, marginBottom: "8px" }}>
+                      {n.titulo}
+                    </h3>
+                    <p style={{ fontSize: "13px", color: "#666", lineHeight: 1.6, fontFamily: "'Inter', sans-serif" }}>
+                      {n.resumen?.slice(0, 100)}{n.resumen?.length > 100 ? "..." : ""}
                     </p>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: "12px", fontSize: "11px", color: "#666", fontFamily: "'Source Sans 3', sans-serif" }}>
-                      <span>{noticia.autor}</span>
-                      <span>{noticia.fecha}</span>
+                    <div style={{ marginTop: "14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: "12px", color: "#555", fontFamily: "'Inter', sans-serif" }}>✍ {n.autor}</span>
+                      <span style={{ fontSize: "12px", color: "#ff6b35", fontWeight: 600 }}>Leer →</span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
+          </div>
+        )}
 
-            {/* Ad entre noticias */}
-            <div className="ad-banner" style={{ height: "250px", marginTop: "32px" }}>
-              📢 Google AdSense 300×250 — Rectangle
+        {/* Ad banner */}
+        <div style={{ marginTop: "64px", height: "100px", background: "linear-gradient(135deg, #0f0f1c, #1a1a2e)", border: "1px dashed #222", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "#333", fontSize: "12px", letterSpacing: "2px" }}>
+          📢 ESPACIO PUBLICITARIO — Google AdSense
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer style={{ background: "#04040a", borderTop: "1px solid rgba(255,255,255,0.05)", padding: "48px 24px 32px" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "32px", marginBottom: "40px" }}>
+            {/* Logo */}
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                <div style={{ width: "34px", height: "34px", background: "linear-gradient(135deg, #ff6b35, #f7c948)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "16px", color: "#07070f" }}>N</div>
+                <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "20px" }}>NEXUSMEDIA</span>
+              </div>
+              <p style={{ fontSize: "13px", color: "#444", maxWidth: "240px", lineHeight: 1.6, fontFamily: "'Inter', sans-serif" }}>
+                Tu portal de noticias de anime, cine, espectáculo y gaming.
+              </p>
+            </div>
+
+            {/* Links */}
+            <div style={{ display: "flex", gap: "48px", flexWrap: "wrap" }}>
+              <div>
+                <p style={{ fontSize: "11px", color: "#ff6b35", letterSpacing: "2px", marginBottom: "16px", fontWeight: 600 }}>CATEGORÍAS</p>
+                {CATEGORIAS.slice(1).map(cat => (
+                  <p key={cat} onClick={() => setCategoria(cat)} style={{ fontSize: "13px", color: "#555", marginBottom: "8px", cursor: "pointer", transition: "color 0.2s", fontFamily: "'Inter', sans-serif" }}
+                    onMouseOver={e => e.target.style.color = "#fff"} onMouseOut={e => e.target.style.color = "#555"}>
+                    {cat}
+                  </p>
+                ))}
+              </div>
+              <div>
+                <p style={{ fontSize: "11px", color: "#ff6b35", letterSpacing: "2px", marginBottom: "16px", fontWeight: 600 }}>LEGAL</p>
+                {["Privacidad", "Términos", "Contacto", "Anunciarse"].map(l => (
+                  <p key={l} style={{ fontSize: "13px", color: "#555", marginBottom: "8px", cursor: "pointer", fontFamily: "'Inter', sans-serif" }}>{l}</p>
+                ))}
+              </div>
             </div>
           </div>
-
-          {/* Sidebar */}
-          <aside>
-            {/* Ad sidebar */}
-            <div className="ad-banner" style={{ height: "250px", marginBottom: "24px" }}>
-              📢 AdSense<br />300×250
-            </div>
-
-            {/* Más leídas */}
-            <div style={{ background: "#0f0f1a", borderRadius: "4px", padding: "20px" }}>
-              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "18px", fontWeight: 700, marginBottom: "16px", paddingBottom: "12px", borderBottom: "2px solid #ff6b35" }}>
-                Más Leídas
-              </h3>
-              {NOTICIAS.slice(0, 5).map((n, i) => (
-                <div key={n.id} className="card-small">
-                  <span style={{ fontSize: "28px", fontFamily: "'Playfair Display', serif", fontWeight: 900, color: i === 0 ? "#ff6b35" : "#333", minWidth: "32px", lineHeight: 1 }}>
-                    {i + 1}
-                  </span>
-                  <div>
-                    <span className="tag-cat" style={{ background: CATEGORIA_COLORS[n.categoria] || "#888", color: "#0a0a0f", fontSize: "8px" }}>
-                      {n.categoria}
-                    </span>
-                    <p style={{ fontFamily: "'Source Sans 3', sans-serif", fontSize: "13px", fontWeight: 600, color: "#ccc", lineHeight: 1.4, marginTop: "6px" }}>
-                      {n.titulo}
-                    </p>
-                    <span style={{ fontSize: "11px", color: "#555", fontFamily: "'Source Sans 3', sans-serif" }}>{n.fecha}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Ad sticky */}
-            <div className="ad-banner" style={{ height: "600px", marginTop: "24px" }}>
-              📢 AdSense<br />160×600<br />(Skyscraper)
-            </div>
-          </aside>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer style={{ borderTop: "1px solid #1a1a2e", marginTop: "64px", padding: "40px 24px", background: "#07070f" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", textAlign: "center" }}>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "28px", fontWeight: 900, background: "linear-gradient(90deg, #ff6b35, #ffe66d)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-            NEXUSMEDIA
-          </h2>
-          <p style={{ fontSize: "12px", color: "#444", marginTop: "16px", fontFamily: "'Source Sans 3', sans-serif", letterSpacing: "1px" }}>
-            © 2026 NexusMedia — Tu portal de noticias de anime, cine, espectáculo y más
-          </p>
-          <div style={{ display: "flex", justifyContent: "center", gap: "24px", marginTop: "16px" }}>
-            {["Privacidad", "Términos", "Contacto", "Anunciarse"].map(link => (
-              <span key={link} style={{ fontSize: "11px", color: "#555", cursor: "pointer", letterSpacing: "1px", fontFamily: "'Source Sans 3', sans-serif" }}>
-                {link}
-              </span>
-            ))}
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "24px", textAlign: "center" }}>
+            <p style={{ fontSize: "12px", color: "#333", fontFamily: "'Inter', sans-serif" }}>
+              © {new Date().getFullYear()} NexusMedia — Todos los derechos reservados
+            </p>
           </div>
         </div>
       </footer>
