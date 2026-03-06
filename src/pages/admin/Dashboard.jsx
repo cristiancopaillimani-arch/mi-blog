@@ -35,6 +35,12 @@ export default function Dashboard() {
     window.location.href = "/admin";
   };
 
+  const btn = (bg, color, txt, onClick) => (
+    <button onClick={onClick} style={{ padding: "6px 14px", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "12px", background: bg, color, fontWeight: 600, fontFamily: "sans-serif" }}>
+      {txt}
+    </button>
+  );
+
   return (
     <div style={{ minHeight: "100vh", background: "#0a0a0f", color: "#e8e8f0", fontFamily: "sans-serif" }}>
       <header style={{ background: "#0f0f1a", borderBottom: "1px solid #1a1a2e", padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -55,27 +61,21 @@ export default function Dashboard() {
         </h2>
 
         {noticias.map(n => (
-          <div key={n.id} style={{ background: "#0f0f1a", border: "1px solid #1a1a2e", borderRadius: "6px", padding: "20px", marginBottom: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div key={n.id} style={{ background: "#0f0f1a", border: "1px solid #1a1a2e", borderRadius: "8px", padding: "20px", marginBottom: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px" }}>
             <div style={{ flex: 1 }}>
-              <span style={{ fontSize: "10px", background: "#1a1a2e", color: "#ff6b35", padding: "3px 10px", borderRadius: "2px", letterSpacing: "1px" }}>
-                {n.categoria}
-              </span>
-              <h3 style={{ fontSize: "15px", marginTop: "8px", color: "#e8e8f0" }}>{n.titulo}</h3>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+                <span style={{ fontSize: "10px", background: "#1a1a2e", color: "#ff6b35", padding: "3px 10px", borderRadius: "2px", letterSpacing: "1px" }}>
+                  {n.categoria}
+                </span>
+                {n.destacado && <span style={{ fontSize: "10px", background: "#2a1a0a", color: "#f7c948", padding: "3px 10px", borderRadius: "2px" }}>⭐ DESTACADA</span>}
+              </div>
+              <h3 style={{ fontSize: "15px", color: "#e8e8f0" }}>{n.titulo}</h3>
               <p style={{ fontSize: "12px", color: "#555", marginTop: "4px" }}>{n.created_at?.slice(0, 10)}</p>
             </div>
-            <div style={{ display: "flex", gap: "8px", marginLeft: "16px" }}>
-              <button
-                onClick={() => togglePublicado(n.id, n.publicado)}
-                style={{ padding: "6px 14px", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "12px", background: n.publicado ? "#1a3a1a" : "#3a1a1a", color: n.publicado ? "#4caf50" : "#ff4444" }}
-              >
-                {n.publicado ? "✓ Publicado" : "✗ Borrador"}
-              </button>
-              <button
-                onClick={() => eliminar(n.id)}
-                style={{ padding: "6px 14px", borderRadius: "4px", border: "1px solid #333", cursor: "pointer", fontSize: "12px", background: "none", color: "#888" }}
-              >
-                Eliminar
-              </button>
+            <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+              {btn(n.publicado ? "#1a3a1a" : "#3a1a1a", n.publicado ? "#4caf50" : "#ff4444", n.publicado ? "✓ Publicado" : "✗ Borrador", () => togglePublicado(n.id, n.publicado))}
+              {btn("#1a1a3a", "#4ecdc4", "✏ Editar", () => window.location.href = `/admin/editar/${n.id}`)}
+              {btn("none", "#888", "🗑 Eliminar", () => eliminar(n.id))}
             </div>
           </div>
         ))}

@@ -6,6 +6,7 @@ import Noticia from "./pages/Noticia.jsx"
 import Login from "./pages/admin/Login.jsx"
 import Dashboard from "./pages/admin/Dashboard.jsx"
 import NuevaNoticia from "./pages/admin/NuevaNoticia.jsx"
+import EditarNoticia from "./pages/admin/EditarNoticia.jsx"
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -16,6 +17,7 @@ createRoot(document.getElementById("root")).render(
         <Route path="/admin" element={<Login />} />
         <Route path="/admin/dashboard" element={<Dashboard />} />
         <Route path="/admin/nueva" element={<NuevaNoticia />} />
+        <Route path="/admin/editar/:id" element={<EditarNoticia />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
