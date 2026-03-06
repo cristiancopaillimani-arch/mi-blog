@@ -374,11 +374,19 @@ export default function App() {
                 ))}
               </div>
               <div>
-                <p style={{ fontSize: "11px", color: "#ff6b35", letterSpacing: "2px", marginBottom: "16px", fontWeight: 600 }}>LEGAL</p>
-                {["Privacidad", "Términos", "Contacto", "Anunciarse"].map(l => (
-                  <p key={l} style={{ fontSize: "13px", color: "#555", marginBottom: "8px", cursor: "pointer", fontFamily: "'Inter', sans-serif" }}>{l}</p>
-                ))}
-              </div>
+  <p style={{ fontSize: "11px", color: "#ff6b35", letterSpacing: "2px", marginBottom: "16px", fontWeight: 600 }}>LEGAL</p>
+  {[
+    { label: "Privacidad", ruta: "/privacidad" },
+    { label: "Términos", ruta: "/" },
+    { label: "Contacto", ruta: "/" },
+    { label: "Anunciarse", ruta: "/" },
+  ].map(l => (
+    <p key={l.label} onClick={() => navigate(l.ruta)} style={{ fontSize: "13px", color: "#555", marginBottom: "8px", cursor: "pointer", fontFamily: "'Inter', sans-serif" }}
+      onMouseOver={e => e.target.style.color = "#fff"} onMouseOut={e => e.target.style.color = "#555"}>
+      {l.label}
+    </p>
+  ))}
+</div>
             </div>
           </div>
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "24px", textAlign: "center" }}>
