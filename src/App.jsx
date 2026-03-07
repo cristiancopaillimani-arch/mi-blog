@@ -342,9 +342,7 @@ export default function App() {
         )}
 
         {/* Ad banner */}
-        <div style={{ marginTop: "64px", height: "100px", background: "linear-gradient(135deg, #0f0f1c, #1a1a2e)", border: "1px dashed #222", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "#333", fontSize: "12px", letterSpacing: "2px" }}>
-          📢 ESPACIO PUBLICITARIO — Google AdSense
-        </div>
+        <div id="contenedor-7310a52a8a246db3f268fd8b19237e19" style={{ marginTop: "64px" }}></div>
       </section>
 
       {/* ── FOOTER ── */}
