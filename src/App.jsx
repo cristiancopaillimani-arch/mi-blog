@@ -342,7 +342,10 @@ export default function App() {
         )}
 
         {/* Ad banner */}
-        <div id="contenedor-7310a52a8a246db3f268fd8b19237e19" style={{ marginTop: "64px" }}></div>
+<div style={{ marginTop: "64px", minHeight: "100px" }}>
+  <div id="contenedor-7310a52a8a246db3f268fd8b19237e19"></div>
+</div>
+
       </section>
 
       {/* ── FOOTER ── */}
